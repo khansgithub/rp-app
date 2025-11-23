@@ -23,7 +23,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages }) => {
 	return (
 		<div
 			ref={containerRef}
-			className="flex flex-col grow overflow-y-auto p-4 rounded-lg border border-gray-300 dark:border-gray-500 bg-gray-100 dark:bg-gray-700 mb-2.5 gap-2.5"
+			className="flex flex-col grow overflow-y-scroll max-h-[50vh] p-4 rounded-lg border border-gray-300 dark:border-gray-500 bg-gray-100 dark:bg-gray-700 mb-2.5 gap-2.5"
 		>
 			{messages.map((msg, index) => (
 				<Message key={index} message={msg} />

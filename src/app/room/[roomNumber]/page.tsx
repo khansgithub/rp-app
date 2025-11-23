@@ -1,4 +1,4 @@
-import App from "./App";
+import Chat from "./Chat";
 import { ThemeSwitcher } from "@/app/components/ThemeSwitcher";
 
 export default async ({ params }: { params: Promise<{ roomNumber: string }> }) => {
@@ -6,7 +6,7 @@ export default async ({ params }: { params: Promise<{ roomNumber: string }> }) =
 	return (
 		<>
 			<ThemeSwitcher />
-			<App roomNumber={roomNumber} />
+			<Chat roomNumber={roomNumber} />
 		</>
 	);
 }

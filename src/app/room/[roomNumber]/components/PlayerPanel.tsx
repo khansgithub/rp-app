@@ -5,13 +5,13 @@ import React, {
 	memo,
 	useEffect,
 } from 'react';
-import type { Cfg, Player, RefreshRef } from '@/app/types';
-import { flip_0_1 } from '@/app/util';
+import type { Config, Player, RefreshRef } from '@/app/types';
+import { flip } from '@/app/util';
 
 interface PlayerPanelProps {
 	player: Player;
 	message: React.RefObject<string>;
-	cfg: Cfg;
+	config: Config;
 	sendMessage: () => void;
 }
 
@@ -25,12 +25,10 @@ const PlayerPanel = memo(
 			},
 		}));
 
-		const player = props.cfg.player_i(props.cfg.turn.value);
-		const myTurn = player.name === props.player.name;
-		const character = props.cfg.characters[player.character];
-		const characterName = myTurn
-			? character.name
-			: props.cfg.characters[flip_0_1(player.character)].name;
+		const player = props.player;
+		const myTurn = props.config.turn.value == player.character;
+		const character = props.config.characters[player.character];
+		const characterName = props.config.character_i(player.character).name;
 		const characterColour = character.colour;
 
 		useEffect(() => {
@@ -46,7 +44,7 @@ const PlayerPanel = memo(
 
 		return (
 			<div
-				className={`flex flex-col justify-center items-center p-3 w-5/12 rounded-lg transition-colors duration-300 dark:saturate-200 ${myTurn ? 'border' : 'saturate-0!'}`}
+				className={`p-3 grow flex flex-col justify-center items-center rounded-lg transition-colors duration-300 dark:saturate-200 border ${myTurn ? 'dark:border-gray-500 border-gray-400' : 'dark:bg-gray-400! bg-gray-300! dark:border-gray-700 border-gray-100'}`}
 				style={{ backgroundColor: characterColour }}
 			>
 				<div className="text-center mb-2 dark:text-black">
@@ -66,12 +64,14 @@ const PlayerPanel = memo(
 			</div>
 		);
 	}),
+	// prevents the component from being re-rendered (forgot what state value triggered this)
 	(prevProps, nextProps) => {
-		const same_turn = prevProps.cfg.turn.value === nextProps.cfg.turn.value;
-		const not_switched =
-			prevProps.player.character === nextProps.player.character;
-		const rerender = !same_turn || !not_switched;
-		return !rerender;
+		// const same_turn = prevProps.config.value === nextProps.config.value;
+		// const not_switched =
+		// 	prevProps.player.character === nextProps.player.character;
+		// const rerender = !same_turn || !not_switched;
+		// return !rerender;
+		return false;
 	}
 );
 

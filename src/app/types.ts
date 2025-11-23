@@ -22,7 +22,7 @@ export interface Data {
     characters: [Character, Character]
 }
 
-export interface Cfg {
+export interface Config {
     players: [Player, Player];
     characters: [Character, Character];
     player1: Player;
@@ -33,7 +33,7 @@ export interface Cfg {
     character_i: (i: 0 | 1) => Character;
     turn: {
         value: 0 | 1;
-        set: (i: 0 | 1) => void;
+        set: React.Dispatch<React.SetStateAction<0 | 1>>;
     };
 }
 

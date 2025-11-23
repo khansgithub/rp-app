@@ -1,37 +1,21 @@
-import { Rooms } from '@/app/types';
-import express, { Request, Response } from 'express';
-import http from 'http';
-import { Server as SocketServer, Socket } from 'socket.io';
+import { Message, Player } from "@/app/types";
 
-const rooms: Rooms = new Map<string, {count: 1 | 2}>();
-type ws_action = "";
-
-export function getRooms(): typeof rooms{
-    return rooms;
+export interface ClientToServerEvents {
+    chatMessage: (
+        msg: Message,
+        // player: typeof config.players[number]['name'],
+        // character: typeof config.characters[number]['name']
+    ) => void;
+    swapCharacter: () => void;
 }
 
-export function createIOServer(server: http.Server): SocketServer {
-    return setUpIOServer(new SocketServer(server, {
-        cors: { origin: "*" }
-    }));
-};
+export interface ServerToClientEvents {
+    chatMessage: (msg: Message) => void;
+    swapCharacter: () => void;
+    setTurn:(turn: 0 | 1) => void;
+    text: (text: string) => void;
+}
 
-export function setUpIOServer(io: SocketServer): SocketServer {
-    io.on('connection', (socket: Socket) => {
-        console.log('Client connected:', socket.id);
-
-        socket.emit('welcome', 'Welcome to the Socket.IO server!');
-
-        socket.on("join", )
-
-        socket.on('message', (msg: string) => {
-            console.log(`Message from ${socket.id}: ${msg}`);
-            socket.emit('reply', `Server received: ${msg}`);
-        });
-
-        socket.on('disconnect', () => {
-            console.log('Client disconnected:', socket.id);
-        });
-    });
-    return io;
+export interface SocketProperties {
+    player_number: 0 | 1;
 }
