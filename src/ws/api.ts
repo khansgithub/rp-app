@@ -1,18 +1,21 @@
 import { Message, Player } from "@/app/types";
 
-export interface ClientToServerEvents {
-    chatMessage: (
-        msg: Message,
-        // player: typeof config.players[number]['name'],
-        // character: typeof config.characters[number]['name']
-    ) => void;
+export interface Shared {
     swapCharacter: () => void;
+    swapRole: () => void;
+    endChat: () => void;    
 }
 
-export interface ServerToClientEvents {
+export interface ClientToServerEvents extends Shared {
+    chatMessage: (
+        msg: Message,
+    ) => void;
+}
+
+export interface ServerToClientEvents extends Shared {
     chatMessage: (msg: Message) => void;
-    swapCharacter: () => void;
-    setTurn:(turn: 0 | 1) => void;
+    setTurn: (turn: 0 | 1) => void;
+    roomFull: (roomSize?: number, cb?: ()=>void) => void;
     text: (text: string) => void;
 }
 

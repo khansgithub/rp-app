@@ -11,18 +11,24 @@ import { ErrorToast } from './components/ErrorToast';
 import PlayerPanel from './components/PlayerPanel';
 import { getConfig } from './data';
 import { setupSocket } from './socket';
+import { useUserStore } from '@/app/store/store';
 
 export default (props: { roomNumber: string }) => {
     const socketRef = setupSocket(socketEvents);
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [errorToast, setErrorToast] = useState("");
     const config = getConfig();
     const input_fields = [
         [useRef(""), useRef<RefreshRef>(null)],
         [useRef(""), useRef<RefreshRef>(null)]
     ] as const;
-    var player_i : 0 | 1 = 0;
-    useEffect(()=>{
+    
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [errorToast, setErrorToast] = useState("");
+    const [roomFull, setRoomFull] = useState(false);
+
+    var player_i: 0 | 1 = 0;
+
+
+    useEffect(() => {
         console.log(`Turn: ${config.character_i(config.turn.value).name}`);
         console.log(`Character: ${config.character_i(config.player1.character).name}`);
     }, [config.turn.value, config.player1.character]);
@@ -40,10 +46,23 @@ export default (props: { roomNumber: string }) => {
             _nextTurn();
         });
 
+        socket.on("swapRole", () => {
+            switchRoles();
+        });
+
+        socket.on("endChat", () => {
+            console.log("got endChat from server");
+            endChat();
+        })
+
         socket.on("swapCharacter", foo => {
-            console.log("Got swapCharacter from the server");
             _swapCharacter();
         });
+
+        socket.on("roomFull", () => {
+            console.log("got room full from server");
+            setRoomFull(true);
+        })
 
         socket.on("text", text => {
             console.log("Socket message from server: ", text);
@@ -68,23 +87,27 @@ export default (props: { roomNumber: string }) => {
         socketRef.current?.emit('chatMessage', newMessage);
         _resetPlayerInput();
         _nextTurn();
-
     };
 
-    function switchRoles() {
-        const switchState = !messages.slice(-1)[0]?.switched;
+    function switchRolesButton() {
+        socketRef.current?.emit("swapRole");
+        switchRoles();
+    };
+
+    function switchRoles(){
         _swapCharacter();
-        socketRef.current?.emit("swapCharacter");
-        setMessages((prevMessages) => {
-            const lastMessage = prevMessages.slice(-1)[0];
-            if (lastMessage) lastMessage.switched = switchState;
-            return [...prevMessages];
-        });
+        _nextTurn();
+        _setLastMessageSwitched();
+    }
+
+    function endChatButton() {
+        socketRef.current?.emit("endChat");
+        endChat();
     };
 
     function endChat() {
         setMessages([]);
-    };
+    }
 
     function _validMessage(player_message: string): boolean {
         if (player_message.trim() !== '') return true;
@@ -92,7 +115,7 @@ export default (props: { roomNumber: string }) => {
         return false;
     }
 
-    function _swapCharacter(){
+    function _swapCharacter() {
         const player = config.player_i(player_i);
         const [from, to] = [config.characters[player.character].name, config.characters[flip(player.character)].name]
         console.log(`Character swap from ${from} to ${to}`);
@@ -101,33 +124,55 @@ export default (props: { roomNumber: string }) => {
         player.setCharacter(c => flip(c));
     }
 
-    function _nextTurn(){
+    function _nextTurn() {
         config.turn.set(turn => flip(turn));
     }
 
-    function _resetPlayerInput(){
+    function _resetPlayerInput() {
         input_fields[player_i][0].current = "";
         input_fields[player_i][1].current?.refresh();
     }
+
+    function _setLastMessageSwitched() {
+        const switchState = !messages.slice(-1)[0]?.switched;
+        setMessages((prevMessages) => {
+            const lastMessage = prevMessages.slice(-1)[0];
+            if (lastMessage) lastMessage.switched = switchState;
+            return [...prevMessages];
+        });
+    }
+
+    function renderRoom(full: boolean) {
+        if (full) {
+            return <h3 className='text-center text-2xl font-bold'>Room {props.roomNumber} is full</h3>
+        } else {
+            return (
+                <>
+                    <h3 className='text-center text-2xl font-bold'>Room {props.roomNumber}</h3>
+                    {errorToast && <ErrorToast message={errorToast} />}
+                    <ChatBox messages={messages} />
+                    <Controls
+                        sendMessage={sendMessage}
+                        switchRoles={switchRolesButton}
+                        endChat={endChatButton}
+                    />
+                    <div className="flex flex-row gap-1 mt-5">
+                        <PlayerPanel
+                            player={config.players[player_i]}
+                            message={input_fields[player_i][0] as RefObject<string>}
+                            ref={input_fields[player_i][1] as RefObject<RefreshRef>}
+                            sendMessage={sendMessage}
+                            config={config}
+                        />
+                    </div>
+                </>
+            )
+        }
+    }
+
     return (
         <div className="flex flex-col h-full w-full min-h-fit">
-            <h3 className='text-center text-2xl font-bold'>Room {props.roomNumber}</h3>
-            {errorToast && <ErrorToast message={errorToast} />}
-            <ChatBox messages={messages} />
-            <Controls
-                sendMessage={sendMessage}
-                switchRoles={switchRoles}
-                endChat={endChat}
-            />
-            <div className="flex flex-row gap-1 mt-5">
-                <PlayerPanel
-                    player={config.players[player_i]}
-                    message={input_fields[player_i][0] as RefObject<string>}
-                    ref={input_fields[player_i][1] as RefObject<RefreshRef>}
-                    sendMessage={sendMessage}
-                    config={config}
-                />
-            </div>
+            {renderRoom(roomFull)}
         </div>
     );
 };

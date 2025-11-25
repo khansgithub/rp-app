@@ -1,7 +1,8 @@
+import { useUserStore } from "@/app/store/store";
 import { Config, Character, Data, Player } from "@/app/types";
 import { useState } from "react";
 
-export const names = ["A", "B"] as const;
+const names = ["A", "B"];
 
 const Characters: [Character, Character] = [
     { name: 'Host', colour: '#CAF4EC' },

@@ -35,15 +35,15 @@ type ChatSocket = Socket<ClientToServerEvents, ServerToClientEvents, EventsMap, 
 const socket_player: [ChatSocket?, ChatSocket?] = [undefined, undefined];
 const room_name = "room1" as const;
 const max_room_size: number = 2 as const;
-var player_i: number = 0;
 
 function setUpSocket(IO: typeof io) {
     IO.use((socket, next) => {
         const player_i = socket_player.findIndex(x => x === undefined);
 
         if (player_i == -1){
-            console.log("Max users reached")
-            return next(new Error("Max users reached"))
+            console.log("Max users reached");
+            socket.emit("roomFull");
+            return next();
         }
 
         socket_player[player_i] = socket;
@@ -69,17 +69,30 @@ function setUpSocket(IO: typeof io) {
 
         socket.on("chatMessage", message => {
             console.log("got message from client");
-            let other_socket = socket_player[flip(socket.data.player_number)]
+            let other_socket = socket_player[flip(socket.data.player_number)];
             other_socket?.emit("chatMessage", message);
         });
 
-        socket.on("swapCharacter", () => {
-            let other_socket = socket_player[flip(socket.data.player_number)]
-            other_socket?.emit("swapCharacter");
+        socket.on("swapRole", () => {
+            _otherSocket(socket).emit("swapRole");
         })
+
+        socket.on("swapCharacter", () => {
+            _otherSocket(socket).emit("swapCharacter");
+        })
+
+        socket.on("endChat", () => {
+            _otherSocket(socket).emit("endChat");
+        });
 
         socket.on("disconnect", reason => {
             socket_player[socket.data.player_number] = undefined; 
         });
     });
+}
+
+function _otherSocket(socket: ChatSocket): ChatSocket{
+    const s = socket_player[flip(socket.data.player_number)];
+    if  (!s) throw new Error("Socket not found");
+    return s;
 }

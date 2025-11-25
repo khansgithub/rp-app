@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import type { Config, Player, RefreshRef } from '@/app/types';
 import { flip } from '@/app/util';
+import { useUserStore } from '@/app/store/store';
 
 interface PlayerPanelProps {
 	player: Player;
@@ -30,6 +31,7 @@ const PlayerPanel = memo(
 		const character = props.config.characters[player.character];
 		const characterName = props.config.character_i(player.character).name;
 		const characterColour = character.colour;
+    	const { playerName } = useUserStore();
 
 		useEffect(() => {
 			if (myTurn) inputRef.current?.focus();
@@ -48,7 +50,7 @@ const PlayerPanel = memo(
 				style={{ backgroundColor: characterColour }}
 			>
 				<div className="text-center mb-2 dark:text-black">
-					<p className="font-semibold">{props.player.name}</p>
+					<p className="font-semibold">{playerName}</p>
 					<p className="font-normal">{characterName}</p>
 				</div>
 				<input
@@ -57,7 +59,7 @@ const PlayerPanel = memo(
 					type="text"
 					onChange={(e) => (props.message.current = e.target.value)}
 					onKeyDown={enter}
-					placeholder={`${props.player.name} types here!`}
+					placeholder={`${playerName} types here!`}
 					disabled={!myTurn}
 					className={`p-2.5 rounded-md border border-gray-300 dark:border-gray-600 w-11/12 ${myTurn ? 'bg-white dark:bg-gray-700' : 'bg-gray-200 dark:bg-gray-700'}`}
 				/>
