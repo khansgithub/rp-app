@@ -10,3 +10,13 @@ const Foo = React.memo(
     }), () => { return true });
 
 export default Foo
+
+
+type foobar = {
+    foo: string,
+    bar: string
+}
+
+function foo () : foobar{
+    return null;
+} 

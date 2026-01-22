@@ -1,6 +1,6 @@
+import type { Character } from '@/app/types';
 import React, { useEffect, useRef } from 'react';
 import Message from './Message';
-import type { Character } from '@/app/types';
 
 interface ChatBoxProps {
 	messages: {

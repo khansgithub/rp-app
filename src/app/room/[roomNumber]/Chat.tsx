@@ -1,9 +1,8 @@
 "use client";
 
-import { ClientToServerEvents, ServerToClientEvents } from '@/ws/api';
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { io, Socket } from "socket.io-client";
-import type { Message, Player, RefreshRef } from '../../types';
+import { Socket } from "socket.io-client";
+import type { Message, RefreshRef } from '../../types';
 import { flip } from '../../util';
 import ChatBox from './components/ChatBox';
 import Controls from './components/Controls';
@@ -11,7 +10,7 @@ import { ErrorToast } from './components/ErrorToast';
 import PlayerPanel from './components/PlayerPanel';
 import { getConfig } from './data';
 import { setupSocket } from './socket';
-import { useUserStore } from '@/app/store/store';
+import { ClientToServerEvents } from '@/ws/api';
 
 export default (props: { roomNumber: string }) => {
     const socketRef = setupSocket(socketEvents);
@@ -20,7 +19,7 @@ export default (props: { roomNumber: string }) => {
         [useRef(""), useRef<RefreshRef>(null)],
         [useRef(""), useRef<RefreshRef>(null)]
     ] as const;
-    
+
     const [messages, setMessages] = useState<Message[]>([]);
     const [errorToast, setErrorToast] = useState("");
     const [roomFull, setRoomFull] = useState(false);
@@ -29,14 +28,11 @@ export default (props: { roomNumber: string }) => {
 
 
     useEffect(() => {
-        console.log(`Turn: ${config.character_i(config.turn.value).name}`);
-        console.log(`Character: ${config.character_i(config.player1.character).name}`);
-    }, [config.turn.value, config.player1.character]);
+        console.log(messages);
+    }, [messages]);
 
     function socketEvents(socket: Socket) {
         socket.on("connect", () => {
-            console.log("WebSocket connected");
-            // config.turn.set()
         });
 
         socket.on("chatMessage", message => {
@@ -51,7 +47,6 @@ export default (props: { roomNumber: string }) => {
         });
 
         socket.on("endChat", () => {
-            console.log("got endChat from server");
             endChat();
         })
 
@@ -60,12 +55,10 @@ export default (props: { roomNumber: string }) => {
         });
 
         socket.on("roomFull", () => {
-            console.log("got room full from server");
             setRoomFull(true);
         })
 
         socket.on("text", text => {
-            console.log("Socket message from server: ", text);
         });
     }
 
@@ -89,24 +82,42 @@ export default (props: { roomNumber: string }) => {
         _nextTurn();
     };
 
-    function switchRolesButton() {
-        socketRef.current?.emit("swapRole");
-        switchRoles();
-    };
+    // function switchRolesButton() {
+    //     socketRef.current?.emit("swapRole");
+    //     switchRoles();
+    // };
 
-    function switchRoles(){
+    function switchRoles() {
+        console.log("switch roles", messages);
         _swapCharacter();
         _nextTurn();
         _setLastMessageSwitched();
     }
 
-    function endChatButton() {
-        socketRef.current?.emit("endChat");
-        endChat();
-    };
+    // function endChatButton() {
+    //     socketRef.current?.emit("endChat");
+    //     endChat();
+    // };
 
     function endChat() {
         setMessages([]);
+    }
+
+    // function emit(event: keyof ClientToServerEvents) {
+    //     socketRef.current?.emit(event);
+
+    //     return {
+    //         and<T extends (...args: any[]) => any>(callback: T, ...args: Parameters<T>) {
+    //             callback(...args);
+    //         },
+    //     };
+    // }
+
+    function emit (event: keyof ClientToServerEvents): Promise<void>{
+        return new Promise<void>( (resolve, reject) => {
+            socketRef.current?.emit(event);
+            resolve();
+        })
     }
 
     function _validMessage(player_message: string): boolean {
@@ -118,9 +129,6 @@ export default (props: { roomNumber: string }) => {
     function _swapCharacter() {
         const player = config.player_i(player_i);
         const [from, to] = [config.characters[player.character].name, config.characters[flip(player.character)].name]
-        console.log(`Character swap from ${from} to ${to}`);
-        console.log(player.character);
-        console.log(flip(player.character));
         player.setCharacter(c => flip(c));
     }
 
@@ -136,9 +144,11 @@ export default (props: { roomNumber: string }) => {
     function _setLastMessageSwitched() {
         const switchState = !messages.slice(-1)[0]?.switched;
         setMessages((prevMessages) => {
+            console.log("state prev messages: ", prevMessages);
             const lastMessage = prevMessages.slice(-1)[0];
-            if (lastMessage) lastMessage.switched = switchState;
-            return [...prevMessages];
+            lastMessage.switched = switchState;
+            // return [...prevMessages];
+            return prevMessages;
         });
     }
 
@@ -153,8 +163,9 @@ export default (props: { roomNumber: string }) => {
                     <ChatBox messages={messages} />
                     <Controls
                         sendMessage={sendMessage}
-                        switchRoles={switchRolesButton}
-                        endChat={endChatButton}
+                        switchRoles={()=>emit("swapRole").then(switchRoles)}
+                        // endChat={endChatButton}
+                        endChat={()=>emit("endChat").then(endChat)}
                     />
                     <div className="flex flex-row gap-1 mt-5">
                         <PlayerPanel

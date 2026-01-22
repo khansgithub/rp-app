@@ -1,13 +1,12 @@
+import { useUserStore } from '@/app/store/store';
+import type { Config, Player, RefreshRef } from '@/app/types';
 import React, {
 	forwardRef,
-	useImperativeHandle,
-	useRef,
 	memo,
 	useEffect,
+	useImperativeHandle,
+	useRef,
 } from 'react';
-import type { Config, Player, RefreshRef } from '@/app/types';
-import { flip } from '@/app/util';
-import { useUserStore } from '@/app/store/store';
 
 interface PlayerPanelProps {
 	player: Player;
@@ -31,7 +30,7 @@ const PlayerPanel = memo(
 		const character = props.config.characters[player.character];
 		const characterName = props.config.character_i(player.character).name;
 		const characterColour = character.colour;
-    	const { playerName } = useUserStore();
+		const { playerName } = useUserStore();
 
 		useEffect(() => {
 			if (myTurn) inputRef.current?.focus();
