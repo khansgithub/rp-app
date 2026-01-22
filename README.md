@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# rp-app - WIP
 
-## Getting Started
+A quick prototype of a 2‑player roleplay chat room, focused on aiding language learning through typing out scenarios. One player would be a native speaker, and the other a learner.
 
-First, run the development server:
+Two players (a **language learner** + a **native speaker**) roleplay a scenario through text chat. At any point, either player can **swap character roles**.
+
+When a swap happens, the intention is:
+- The **last message by the opposite character is redacted**
+- The player who initiated the swap is prompted to **rewrite that last message**, as their character has also swapped.
+
+This “swap” mechanic exists so the native speaker can effectively **redact a learner’s message** and replace it with a more natural version. The learner can then swap again and rewrite their response while looking at the native speaker’s natural phrasing.
+
+Project is WIP and primarily for learning and experimentation.
+
+## Technologies / Learning
+
+- **React** + **Next.js**
+- **Socket.IO** (real-time multiplayer)
+- Designing multiplayer games + UI/UX
+
+## Progress
+
+- **Hosts a basic workflow, from landing page, to a room page**
+- **Implements the core chat UI loop** (messages list + 2 player panels)
+- **Implements the role/character swap mechanic** (flags the last message as “switched” so it can be rewritten/redacted)
+- **Custom server setup** that hosts Next.js and initializes Socket.IO
+  - The app is currently a fast-moving mock-up; the Socket.IO client/server contract is still evolving.
+- **Basic theming / UI setup** (Tailwind, `next-themes`, HeroUI)
+
+## Running locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open `http://localhost:4000`.
